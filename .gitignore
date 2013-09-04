@@ -1,0 +1,5 @@
+/pkg
+/doc
+/test/db/*
+gemfiles
+Gemfile.lock
