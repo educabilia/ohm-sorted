@@ -32,7 +32,7 @@ backed by a sorted set.
 Requirements
 ------------
 
-This plugin has been tested only with Ohm 1.3.2.
+This plugin works with Ohm versions higher than 0.1.3.
 
 
 Acknowledgements
