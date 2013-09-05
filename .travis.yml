@@ -1,0 +1,3 @@
+language: ruby
+before_script: "rake appraisal:install"
+script: "rake appraisal"
