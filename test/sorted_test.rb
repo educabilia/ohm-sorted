@@ -67,12 +67,14 @@ class SortedTest < Test::Unit::TestCase
   end
 
   def test_sorted_find_invalid
+    exception_class = defined?(Ohm::IndexNotFound) ? Ohm::IndexNotFound : Ohm::Model::IndexNotFound
+
     Post.create(status: "draft", order: 1)
-    assert_raises(Ohm::IndexNotFound) do
+    assert_raises(exception_class) do
       Post.sorted_find(:foo, status: "draft")
     end
 
-    assert_raises(Ohm::IndexNotFound) do
+    assert_raises(exception_class) do
       Post.sorted_find(:order, foo: "bar")
     end
   end

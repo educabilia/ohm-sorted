@@ -2,36 +2,81 @@ require 'ohm'
 require 'ohm/contrib'
 
 module Ohm
-  class SortedSet < BasicSet
-    attr :key
-    attr :namespace
-    attr :model
 
-    def initialize(key, namespace, model) 
-      @key = key
-      @namespace = namespace
-      @model = model
+  if defined?(BasicSet)
+    class SortedSet < BasicSet
+      attr :key
+      attr :namespace
+      attr :model
+
+      def initialize(key, namespace, model)
+        @key = key
+        @namespace = namespace
+        @model = model
+      end
+
+      def ids
+        execute { |key| db.zrange(key, 0, -1) }
+      end
+
+      def size
+        execute { |key| db.zcard(key) }
+      end
+
+    private
+      def exists?(id)
+        execute { |key| !!db.zscore(key, id) }
+      end
+
+      def execute
+        yield key
+      end
+
+      def db
+        model.db
+      end
     end
+  else
+    class SortedSet < Model::Collection
+      attr :key
+      attr :model
 
-    def ids
-      execute { |key| db.zrange(key, 0, -1) }
-    end
+      def initialize(key, _, model)
+        @key = key
+        @model = model
+      end
 
-    def size
-      execute { |key| db.zcard(key) }
-    end
+      def db
+        model.db
+      end
 
-  private
-    def exists?(id)
-      execute { |key| !!db.zscore(key, id) }
-    end
+      def each(&block)
+        db.zrange(key, 0, -1).each { |id| block.call(model.to_proc[id]) }
+      end
 
-    def execute
-      yield key
-    end
+      def [](id)
+        model[id] if !!db.zrank(key, id)
+      end
 
-    def db
-      model.db
+      def size
+        db.zcard(key)
+      end
+
+      def all
+        db.zrange(key, 0, -1).map(&model)
+      end
+
+      def first
+        db.zrange(key, 0, 1).map(&model).first
+      end
+
+      def include?(model)
+        !!db.zrank(key, model.id)
+      end
+
+      def inspect
+        "#<SortedSet (#{model}): #{db.zrange(key, 0, -1).inspect}>"
+      end
     end
   end
 
@@ -50,7 +95,9 @@ module Ohm
       end
 
       def sorted_find(attribute, dict)
-        raise IndexNotFound unless sorted_index_exists?(dict.keys.first, by: attribute)
+        unless sorted_index_exists?(dict.keys.first, by: attribute)
+          raise index_not_found(attribute)
+        end
 
         index_key = sorted_index_key(attribute, dict)
         Ohm::SortedSet.new(index_key, key, self)
@@ -63,6 +110,15 @@ module Ohm
 
       def sorted_index_key(attribute, dict)
         [key, "sorted", dict.keys.first, attribute, dict.values.first].join(":")
+      end
+
+    protected
+      def index_not_found(attribute)
+        if defined?(IndexNotFound)
+          IndexNotFound
+        else
+          Model::IndexNotFound.new(attribute)
+        end
       end
     end
 
