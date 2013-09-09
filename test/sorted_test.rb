@@ -145,4 +145,14 @@ class SortedTest < Test::Unit::TestCase
     sorted_set = Post.sorted_find(:order, status: "draft")
     assert_equal 1, sorted_set.size
   end
+
+  def test_sorted_set_empty
+    sorted_set = Post.sorted_find(:order)
+    assert sorted_set.empty?
+
+    Post.create(order: 1)
+
+    sorted_set = Post.sorted_find(:order)
+    assert !sorted_set.empty?
+  end
 end

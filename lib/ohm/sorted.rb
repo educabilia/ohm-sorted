@@ -113,6 +113,10 @@ module Ohm
         db.zcard(key)
       end
 
+      def empty?
+        size == 0
+      end
+
       def all
         ids.map(&model)
       end
