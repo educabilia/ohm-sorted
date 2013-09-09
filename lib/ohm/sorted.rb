@@ -38,7 +38,7 @@ module Ohm
       if @range.nil?
         execute { |key| db.zrange(key, start, stop) }
       else
-        execute { |key| db.zrangebyscore(key, @range.begin, @range.end, offset: [start, stop]) }
+        execute { |key| db.zrangebyscore(key, @range.begin.to_f, @range.end.to_f, offset: [start, stop]) }
       end
     end
   end
@@ -114,7 +114,7 @@ module Ohm
         if @range.nil?
           ids = db.zrange(key, start, 1)
         else
-          ids = db.zrangebyscore(key, @range.begin, @range.end, offset: [start, 1])
+          ids = db.zrangebyscore(key, @range.begin.to_f, @range.end.to_f, offset: [start, 1])
         end
         ids.map(&model).first
       end
