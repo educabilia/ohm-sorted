@@ -41,6 +41,13 @@ module Ohm
         execute { |key| db.zrangebyscore(key, @range.begin.to_f, @range.end.to_f, offset: [start, stop]) }
       end
     end
+
+    unless instance_methods.include?(:execute)
+      def execute
+        yield key
+      end
+      private :execute
+    end
   end
 
   if defined?(BasicSet)
