@@ -201,6 +201,7 @@ module Ohm
 
     def before_update
       prune_sorted_indices
+      super
     end
 
     def after_update
