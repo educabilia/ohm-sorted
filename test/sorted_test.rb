@@ -7,8 +7,9 @@ class Post < Ohm::Model
 
   attribute :order
   attribute :status
-  
-  sorted :status, by: :order
+
+  sorted :order, group_by: :status
+  sorted :order
 end
 
 class SortedTest < Test::Unit::TestCase
@@ -20,14 +21,22 @@ class SortedTest < Test::Unit::TestCase
     Post.create(status: "draft", order: 1)
     sorted_set = Post.sorted_find(:order, status: "draft")
     assert_equal Ohm::SortedSet, sorted_set.class
-    assert_equal "Post:sorted:status:order:draft", sorted_set.key
   end
 
-  def test_sorted_find_first
-    post = Post.create(status: "draft", order: 1)
+  def test_sorted_find_set_key
+    Post.create(status: "draft", order: 1)
     sorted_set = Post.sorted_find(:order, status: "draft")
+    assert_equal "Post:sorted:order:status:draft", sorted_set.key
 
-    assert_equal post, sorted_set.first
+    sorted_set = Post.sorted_find(:order)
+    assert_equal "Post:sorted:order", sorted_set.key
+  end
+
+  def test_sorted_find_all
+    posts = []
+    posts << Post.create(order: 1)
+    posts << Post.create(order: 2)
+    assert_equal posts, Post.sorted_find(:order).to_a
   end
 
   def test_sorted_find_order
@@ -37,6 +46,41 @@ class SortedTest < Test::Unit::TestCase
     sorted_set = Post.sorted_find(:order, status: "draft")
 
     assert_equal [post_3, post_1, post_2], sorted_set.to_a
+  end
+
+  def test_sorted_find_with_limit
+    posts = []
+    posts << Post.create(order: 1)
+    posts << Post.create(order: 2)
+    Post.create(status: "draft", order: 3)
+    assert_equal posts, Post.sorted_find(:order).limit(2).to_a
+  end
+
+  def test_sorted_find_with_offset
+    Post.create(order: 1)
+    posts = []
+    posts << Post.create(order: 2)
+    posts << Post.create(order: 3)
+    assert_equal posts, Post.sorted_find(:order).offset(1).to_a
+  end
+
+  def test_sorted_find_with_range
+    posts = []
+    posts << Post.create(status: "draft", order: 1)
+    posts << Post.create(status: "draft", order: 2)
+    posts << Post.create(status: "draft", order: 3)
+    posts << Post.create(status: "published", order: 4)
+    posts << Post.create(status: "draft", order: 5)
+    assert_equal posts.slice(1, 2), Post.sorted_find(:order).range(2..3).to_a
+    assert_equal [posts[3]], Post.sorted_find(:order, status: "published").range(2..4).to_a
+  end
+
+  def test_sorted_find_first
+    Post.create(status: "draft", order: 2)
+    post = Post.create(status: "draft", order: 1)
+    sorted_set = Post.sorted_find(:order, status: "draft")
+
+    assert_equal post, sorted_set.first
   end
 
   def test_update
@@ -50,6 +94,13 @@ class SortedTest < Test::Unit::TestCase
 
     sorted_set = Post.sorted_find(:order, status: "draft")
     assert_equal [post_2, post_1], sorted_set.to_a
+
+    post_1.update(status: "published")
+
+    sorted_set = Post.sorted_find(:order, status: "draft")
+    assert_equal [post_2], sorted_set.to_a
+    sorted_set = Post.sorted_find(:order, status: "published")
+    assert_equal [post_1], sorted_set.to_a
   end
 
   def test_delete
@@ -67,7 +118,11 @@ class SortedTest < Test::Unit::TestCase
   end
 
   def test_sorted_find_invalid
-    exception_class = defined?(Ohm::IndexNotFound) ? Ohm::IndexNotFound : Ohm::Model::IndexNotFound
+    exception_class = if defined?(Ohm::IndexNotFound)
+      Ohm::IndexNotFound
+    else
+      Ohm::Model::IndexNotFound
+    end
 
     Post.create(status: "draft", order: 1)
     assert_raises(exception_class) do
