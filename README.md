@@ -18,13 +18,13 @@ Setup
 
 2. Add the sorted indices you want to your model:
 
-    - If you want a complete index:
+  - If you want a complete index:
 
-            sorted :created_at
+        sorted :created_at
 
-    - If you want to partition the index based on an attribute:
+  - If you want to partition the index based on an attribute:
 
-            sorted :created_at, :group_by => :site_id
+        sorted :created_at, :group_by => :site_id
 
 
 You can use both indices for the same attribute, as the partition keys are
