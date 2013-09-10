@@ -140,6 +140,15 @@ class SortedTest < Test::Unit::TestCase
     assert_equal 1, sorted_set.size
   end
 
+  def test_sorted_set_between_size
+    4.times do |i|
+      Post.create(order: i)
+    end
+
+    sorted_set = Post.sorted_find(:order).between(2, 3)
+    assert_equal 2, sorted_set.size
+  end
+
   def test_sorted_set_empty
     sorted_set = Post.sorted_find(:order)
     assert sorted_set.empty?

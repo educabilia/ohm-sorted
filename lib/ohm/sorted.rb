@@ -15,10 +15,6 @@ module Ohm
       @options = options
     end
 
-    def range
-      @options.fetch(:range, "-inf".."inf")
-    end
-
     def offset
       @options.fetch(:offset, 0)
     end
@@ -27,10 +23,14 @@ module Ohm
       @options.fetch(:count, -1)
     end
 
+    def size
+      execute { |key| db.zcard(key) }
+    end
+
     def between(first, last)
       range = first.to_f..last.to_f
       opts = @options.merge(range: range)
-      SortedSet.new(key, namespace, model, opts)
+      RangedSortedSet.new(key, namespace, model, opts)
     end
 
     def slice(*args)
@@ -39,31 +39,28 @@ module Ohm
       elsif args.count == 2
         offset, count = *args
         opts = @options.merge(offset: offset, count: count)
-        SortedSet.new(key, namespace, model, opts)
+        self.class.new(key, namespace, model, opts)
       else
         raise ArgumentError
       end
     end
 
+    def first
+      slice(0, 1).to_a.first
+    end
+
     def ids
-      execute do |key|
-        db.zrangebyscore(key, range.begin, range.end,
-          limit: [offset, count])
-      end
+      execute { |key| db.zrangebyscore(key, "-inf", "inf", limit: [offset, count]) }
+    end
+
+    def inspect
+      "#<SortedSet (#{model}): #{ids}>"
     end
   end
 
   if defined?(BasicSet)
     class SortedSet < BasicSet
       include SortedMethods
-
-      def size
-        execute { |key| db.zcard(key) }
-      end
-
-      def first
-        fetch(execute { |key| db.zrange(key, 0, 1) }).first
-      end
 
     private
       def exists?(id)
@@ -105,10 +102,6 @@ module Ohm
         model[id] if !!db.zrank(key, id)
       end
 
-      def size
-        db.zcard(key)
-      end
-
       def empty?
         size == 0
       end
@@ -117,23 +110,28 @@ module Ohm
         ids.map(&model)
       end
 
-      def first
-        id = db.zrange(key, 0, 1).first
-        model[id] unless id.empty?
-      end
-
       def include?(model)
         !!db.zrank(key, model.id)
-      end
-
-      def inspect
-        "#<SortedSet (#{model}): #{db.zrange(key, 0, -1).inspect}>"
       end
 
     private
       def execute
         yield key
       end
+    end
+  end
+
+  class RangedSortedSet < SortedSet
+    def range
+      @options.fetch(:range)
+    end
+
+    def ids
+      execute { |key| db.zrangebyscore(key, range.begin, range.end, limit: [offset, count]) }
+    end
+
+    def size
+      execute { |key| db.zcount(key, range.begin, range.end) }
     end
   end
 
