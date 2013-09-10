@@ -1,3 +1,7 @@
+### 0.3.1
+
+ - Return correct set size for ranged sets
+
 ### 0.3.0
 
  - Simplify query API
