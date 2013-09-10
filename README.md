@@ -5,7 +5,7 @@ ohm-sorted
 [![Build Status](https://travis-ci.org/educabilia/ohm-sorted.png?branch=master)](https://travis-ci.org/educabilia/ohm-sorted)
 [![Code Climate](https://codeclimate.com/github/educabilia/ohm-sorted.png)](https://codeclimate.com/github/educabilia/ohm-sorted)
 
-Sorted indexes for Ohm
+Sorted indices for Ohm
 
 
 Setup
