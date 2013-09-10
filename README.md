@@ -20,25 +20,42 @@ Setup
 
     - If you want a complete index:
 
-    		sorted :ranking
+            sorted :created_at
 
     - If you want to partition the index based on an attribute:
 
-    		sorted :ranking, :group_by => :status
+            sorted :created_at, :group_by => :site_id
 
 
-You will need to resave every model if they already exist.
+You can use both indices for the same attribute, as the partition keys are
+namespaced by the `group_by` attribute.
+
+You will need to resave every model if they already exist for the index to get
+built.
+
+The ranking attribute must be of a type that responds to `to_f`.
+
 
 Usage
 -----
 
 To query the sorted index, use the `sorted_find` class method.
 
-    >> Post.sorted_find(:ranking, status: "draft")
+    >> Post.sorted_find(:created_at, site_id: "ar")
 
+This returns an `Ohm::SortedSet`, similiar to an `Ohm::Set` but backed by a sorted
+set.
 
-This returns an Ohm::SortedSet, similiar to an Ohm::Set but backed by a sorted
-set. Both Ohm::SortedSet and Ohm::Set share the Ohm::BasicSet base class.
+To limit the results to a certain score range, use the `between` method.
+This and the following methods return a new copy of the set object, but data
+is not read until it is necessary.
+
+    >> Post.sorted_find(:created_at, site_id: "ar").between(start_time, end_time)
+
+To take a slice of the results, use the `slice` method. This returns a new copy
+of the set which will pass its `offset` and `count` parameters to Redis.
+
+    >> Post.sorted_find(:created_at, site_id: "ar").slice(2, 4)
 
 
 Requirements
