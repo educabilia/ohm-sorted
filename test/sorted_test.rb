@@ -48,20 +48,14 @@ class SortedTest < Test::Unit::TestCase
     assert_equal [post_3, post_1, post_2], sorted_set.to_a
   end
 
-  def test_sorted_find_with_limit
+  def test_sorted_find_with_slice
     posts = []
     posts << Post.create(order: 1)
     posts << Post.create(order: 2)
     Post.create(status: "draft", order: 3)
-    assert_equal posts, Post.sorted_find(:order).limit(2).to_a
-  end
-
-  def test_sorted_find_with_offset
-    Post.create(order: 1)
-    posts = []
-    posts << Post.create(order: 2)
-    posts << Post.create(order: 3)
-    assert_equal posts, Post.sorted_find(:order).offset(1).to_a
+    assert_equal posts, Post.sorted_find(:order).slice(0, 2).to_a
+    assert_equal posts[0, 1], Post.sorted_find(:order).slice(0, 1).to_a
+    assert_equal posts[1, 1], Post.sorted_find(:order).slice(1, 1).to_a
   end
 
   def test_sorted_find_with_range
@@ -71,8 +65,8 @@ class SortedTest < Test::Unit::TestCase
     posts << Post.create(status: "draft", order: 3)
     posts << Post.create(status: "published", order: 4)
     posts << Post.create(status: "draft", order: 5)
-    assert_equal posts.slice(1, 2), Post.sorted_find(:order).range(2..3).to_a
-    assert_equal [posts[3]], Post.sorted_find(:order, status: "published").range(2..4).to_a
+    assert_equal posts[1, 2], Post.sorted_find(:order).between(2, 3).to_a
+    assert_equal posts[3, 1], Post.sorted_find(:order, status: "published").between(2, 4).to_a
   end
 
   def test_sorted_find_first

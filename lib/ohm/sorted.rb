@@ -4,65 +4,58 @@ require 'ohm/contrib'
 module Ohm
 
   module SortedMethods
-    attr_accessor :limit
-    attr_accessor :offset
-    attr_accessor :range
+    attr :key
+    attr :namespace
+    attr :model
 
-    def limit(n)
-      set = dup
-      set.limit = n
-      set
+    def initialize(key, namespace, model, options={})
+      @key = key
+      @namespace = namespace
+      @model = model
+      @options = options
     end
 
-    def offset(n)
-      set = dup
-      set.offset = n
-      set
+    def range
+      @options.fetch(:range, "-inf".."inf")
     end
 
-    def start
-      @start ||= (@offset || 0)
+    def offset
+      @options.fetch(:offset, 0)
     end
 
-    def stop
-      @stop ||= (@limit.nil? ? -1 : start + @limit - 1)
+    def count
+      @options.fetch(:count, -1)
     end
 
-    def range(range)
-      set = dup
-      set.range = range
-      set
+    def between(first, last)
+      range = first.to_f..last.to_f
+      opts = @options.merge(range: range)
+      SortedSet.new(key, namespace, model, opts)
+    end
+
+    def slice(*args)
+      if args.count == 1
+        self[args.first]
+      elsif args.count == 2
+        offset, count = *args
+        opts = @options.merge(offset: offset, count: count)
+        SortedSet.new(key, namespace, model, opts)
+      else
+        raise ArgumentError
+      end
     end
 
     def ids
-      if @range.nil?
-        execute { |key| db.zrange(key, start, stop) }
-      else
-        execute { |key| db.zrangebyscore(key, @range.begin.to_f, @range.end.to_f, offset: [start, stop]) }
+      execute do |key|
+        db.zrangebyscore(key, range.begin, range.end,
+          limit: [offset, count])
       end
-    end
-
-    unless instance_methods.include?(:execute)
-      def execute
-        yield key
-      end
-      private :execute
     end
   end
 
   if defined?(BasicSet)
     class SortedSet < BasicSet
       include SortedMethods
-
-      attr :key
-      attr :namespace
-      attr :model
-
-      def initialize(key, namespace, model)
-        @key = key
-        @namespace = namespace
-        @model = model
-      end
 
       def size
         execute { |key| db.zcard(key) }
@@ -90,11 +83,14 @@ module Ohm
       include Ohm::SortedMethods
 
       attr :key
+      attr :namespace
       attr :model
 
-      def initialize(key, _, model)
+      def initialize(key, namespace, model, options={})
         @key = key
         @model = model
+        @namespace = namespace
+        @options = options
       end
 
       def db
@@ -122,12 +118,8 @@ module Ohm
       end
 
       def first
-        if @range.nil?
-          ids = db.zrange(key, start, 1)
-        else
-          ids = db.zrangebyscore(key, @range.begin.to_f, @range.end.to_f, offset: [start, 1])
-        end
-        ids.map(&model).first
+        id = db.zrange(key, 0, 1).first
+        model[id] unless id.empty?
       end
 
       def include?(model)
@@ -136,6 +128,11 @@ module Ohm
 
       def inspect
         "#<SortedSet (#{model}): #{db.zrange(key, 0, -1).inspect}>"
+      end
+
+    private
+      def execute
+        yield key
       end
     end
   end
