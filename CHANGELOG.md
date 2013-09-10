@@ -1,3 +1,7 @@
+### 0.3.0
+
+ - Simplify query API
+
 ### 0.2.1
 
  - Fix empty? method for SortedSet in Ohm legacy
