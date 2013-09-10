@@ -79,17 +79,6 @@ module Ohm
     class SortedSet < Model::Collection
       include Ohm::SortedMethods
 
-      attr :key
-      attr :namespace
-      attr :model
-
-      def initialize(key, namespace, model, options={})
-        @key = key
-        @model = model
-        @namespace = namespace
-        @options = options
-      end
-
       def db
         model.db
       end
