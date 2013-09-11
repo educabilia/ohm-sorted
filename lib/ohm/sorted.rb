@@ -153,9 +153,8 @@ module Ohm
 
       def sorted_index_key(attribute, dict={})
         index_key = [key, "sorted", attribute]
-        if dict.keys.size == 1
-          index_key << dict.keys.first
-          index_key << dict.values.first
+        if dict.size == 1
+          index_key.concat(dict.first)
         elsif dict.keys.size > 1
           raise ArgumentError
         end
