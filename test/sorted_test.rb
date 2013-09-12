@@ -149,6 +149,21 @@ class SortedTest < Test::Unit::TestCase
     assert_equal 2, sorted_set.size
   end
 
+  def test_sorted_set_sliced_size
+    4.times do |i|
+      Post.create(order: i)
+    end
+
+    sorted_set = Post.sorted_find(:order).slice(2, 10)
+    assert_equal 2, sorted_set.size
+
+    sorted_set = Post.sorted_find(:order).slice(4, 1)
+    assert_equal 0, sorted_set.size
+
+    sorted_set = Post.sorted_find(:order).slice(1, 1)
+    assert_equal 1, sorted_set.size
+  end
+
   def test_sorted_set_empty
     sorted_set = Post.sorted_find(:order)
     assert sorted_set.empty?
