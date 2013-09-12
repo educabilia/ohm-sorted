@@ -24,7 +24,7 @@ module Ohm
     end
 
     def size
-      execute { |key| db.zcard(key) }
+      execute { |key| fix_size(db.zcard(key)) }
     end
 
     def between(first, last)
@@ -55,6 +55,11 @@ module Ohm
 
     def inspect
       "#<SortedSet (#{model}): #{ids}>"
+    end
+
+  private
+    def fix_size(value)
+      [[value - offset, 0].max, count >= 0 ? count : Float::INFINITY].min
     end
   end
 
@@ -120,7 +125,7 @@ module Ohm
     end
 
     def size
-      execute { |key| db.zcount(key, range.begin, range.end) }
+      execute { |key| fix_size(db.zcount(key, range.begin, range.end)) }
     end
   end
 
