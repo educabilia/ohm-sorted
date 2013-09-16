@@ -227,9 +227,7 @@ module Ohm
     end
 
     def update_sorted_indices
-      self.class.sorted_indices.each do |args|
-        attribute, options = *args
-
+      self.class.sorted_indices.each do |attribute, options|
         opts = {}
         if options.include?(:group_by)
           group_by = options[:group_by]
