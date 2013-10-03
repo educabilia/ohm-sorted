@@ -13,6 +13,7 @@ module Ohm
       @namespace = namespace
       @model = model
       @options = options
+      @range = options.fetch(:range, ["-inf", "inf"])
     end
 
     def offset
@@ -28,13 +29,13 @@ module Ohm
     end
 
     def between(first, last)
-      range = first.to_f..last.to_f
+      range = [first.to_f, last.to_f]
       opts = @options.merge(range: range)
       RangedSortedSet.new(key, namespace, model, opts)
     end
 
     def reverse
-      opts = @options.merge(reverse: true)
+      opts = @options.merge(reverse: true, range: ["inf", "-inf"])
 
       self.class.new(key, namespace, model, opts)
     end
@@ -56,10 +57,10 @@ module Ohm
     end
 
     def ids
-      if @options[:reverse]
-        execute { |key| db.zrevrangebyscore(key, "inf", "-inf", limit: [offset, count]) }
+      if @options.fetch(:reverse, false)
+        execute { |key| db.zrevrangebyscore(key, @range.first, @range.last, limit: [offset, count]) }
       else
-        execute { |key| db.zrangebyscore(key, "-inf", "inf", limit: [offset, count]) }
+        execute { |key| db.zrangebyscore(key, @range.first, @range.last, limit: [offset, count]) }
       end
     end
 
@@ -121,20 +122,8 @@ module Ohm
   end
 
   class RangedSortedSet < SortedSet
-    def range
-      @options.fetch(:range)
-    end
-
-    def ids
-      if @options[:reverse]
-        execute { |key| db.zrevrangebyscore(key, range.begin, range.end, limit: [offset, count]) }
-      else
-        execute { |key| db.zrangebyscore(key, range.begin, range.end, limit: [offset, count]) }
-      end
-    end
-
     def size
-      execute { |key| db.zcount(key, range.begin, range.end) }
+      execute { |key| db.zcount(key, @range.first, @range.last) }
     end
   end
 
