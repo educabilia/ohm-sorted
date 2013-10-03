@@ -1,5 +1,5 @@
 require 'ohm'
-require 'ohm/contrib'
+require 'ohm/callbacks'
 
 module Ohm
 
