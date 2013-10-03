@@ -1,5 +1,10 @@
 require 'ohm'
-require 'ohm/callbacks'
+
+begin
+  require 'ohm/callbacks'
+rescue LoadError
+  require 'ohm/contrib/callbacks'
+end
 
 module Ohm
 
