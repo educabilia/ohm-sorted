@@ -8,4 +8,8 @@ Gem::Specification.new do |s|
   s.files       = `git ls-files`.split("\n")
   s.homepage    = 'https://github.com/educabilia/ohm-sorted'
   s.license     = 'UNLICENSE'
+
+  s.add_development_dependency "appraisal"
+  s.add_development_dependency "ohm"
+  s.add_development_dependency "ohm-contrib"
 end
