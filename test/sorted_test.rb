@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'ohm/sorted'
+require_relative '../lib/ohm/sorted'
 
 class Post < Ohm::Model
   include Ohm::Callbacks
@@ -157,5 +157,30 @@ class SortedTest < Test::Unit::TestCase
 
     sorted_set = Post.sorted_find(:order)
     assert !sorted_set.empty?
+  end
+
+  def test_sorted_find_reverse
+    posts = []
+
+    posts << Post.create(order: 3)
+    posts << Post.create(order: 2)
+    posts << Post.create(order: 1)
+
+    assert_equal posts, Post.sorted_find(:order).reverse.to_a
+
+    assert_equal posts[0..1], Post.sorted_find(:order).reverse.slice(0, 2).to_a
+    assert_equal posts[1..2], Post.sorted_find(:order).reverse.slice(1, 2).to_a
+  end
+
+  def test_sorted_find_reverse_range
+    posts = []
+
+    posts << Post.create(order: 3)
+    posts << Post.create(order: 2)
+    posts << Post.create(order: 1)
+
+    assert_equal posts, Post.sorted_find(:order).reverse.between(3, 1).to_a
+
+    assert_equal posts[0..1], Post.sorted_find(:order).reverse.between(3, 2).to_a
   end
 end

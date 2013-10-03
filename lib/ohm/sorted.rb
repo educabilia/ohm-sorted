@@ -33,6 +33,12 @@ module Ohm
       RangedSortedSet.new(key, namespace, model, opts)
     end
 
+    def reverse
+      opts = @options.merge(reverse: true)
+
+      self.class.new(key, namespace, model, opts)
+    end
+
     def slice(*args)
       if args.count == 1
         self[args.first]
@@ -50,7 +56,11 @@ module Ohm
     end
 
     def ids
-      execute { |key| db.zrangebyscore(key, "-inf", "inf", limit: [offset, count]) }
+      if @options[:reverse]
+        execute { |key| db.zrevrangebyscore(key, "inf", "-inf", limit: [offset, count]) }
+      else
+        execute { |key| db.zrangebyscore(key, "-inf", "inf", limit: [offset, count]) }
+      end
     end
 
     def inspect
@@ -116,7 +126,11 @@ module Ohm
     end
 
     def ids
-      execute { |key| db.zrangebyscore(key, range.begin, range.end, limit: [offset, count]) }
+      if @options[:reverse]
+        execute { |key| db.zrevrangebyscore(key, range.begin, range.end, limit: [offset, count]) }
+      else
+        execute { |key| db.zrangebyscore(key, range.begin, range.end, limit: [offset, count]) }
+      end
     end
 
     def size
