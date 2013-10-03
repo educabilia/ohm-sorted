@@ -1,3 +1,13 @@
+### (unreleased)
+
+ - You can now use `SortedSet#reverse` to query in reverse order.
+
+   For instance:
+
+   ```
+   Post.sorted_find(:created_at).reverse.between(Time.now, Time.now - 10)
+   ```
+
 ### 0.3.1
 
  - Return correct set size for ranged sets
