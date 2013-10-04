@@ -5,7 +5,7 @@
    For instance:
 
    ```
-   Post.sorted_find(:created_at).reverse.between(Time.now, Time.now - 10)
+   Post.sorted_find(:created_at).reverse.between(Time.now - 10, Time.now)
    ```
 
 ### 0.3.1

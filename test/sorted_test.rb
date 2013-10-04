@@ -170,6 +170,8 @@ class SortedTest < Test::Unit::TestCase
 
     assert_equal posts[0..1], Post.sorted_find(:order).reverse.slice(0, 2).to_a
     assert_equal posts[1..2], Post.sorted_find(:order).reverse.slice(1, 2).to_a
+
+    assert_equal posts.reverse, Post.sorted_find(:order).reverse.reverse.to_a
   end
 
   def test_sorted_find_reverse_range
@@ -179,8 +181,20 @@ class SortedTest < Test::Unit::TestCase
     posts << Post.create(order: 2)
     posts << Post.create(order: 1)
 
-    assert_equal posts, Post.sorted_find(:order).reverse.between(3, 1).to_a
+    assert_equal posts, Post.sorted_find(:order).reverse.between(1, 3).to_a
 
-    assert_equal posts[0..1], Post.sorted_find(:order).reverse.between(3, 2).to_a
+    assert_equal posts[0..1], Post.sorted_find(:order).reverse.between(2, 3).to_a
+  end
+
+  def test_sorted_find_reverse_range_conmutative
+    posts = []
+
+    posts << Post.create(order: 3)
+    posts << Post.create(order: 2)
+    posts << Post.create(order: 1)
+
+    assert_equal posts, Post.sorted_find(:order).between(1, 3).reverse.to_a
+
+    assert_equal posts[0..1], Post.sorted_find(:order).between(2, 3).reverse.to_a
   end
 end

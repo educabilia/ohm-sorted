@@ -35,12 +35,18 @@ module Ohm
 
     def between(first, last)
       range = [first.to_f, last.to_f]
+      range.reverse! if reversed?
+
       opts = @options.merge(range: range)
       RangedSortedSet.new(key, namespace, model, opts)
     end
 
+    def reversed?
+      @options.fetch(:reverse, false)
+    end
+
     def reverse
-      opts = @options.merge(reverse: true, range: ["inf", "-inf"])
+      opts = @options.merge(reverse: !reversed?, range: @range.reverse)
 
       self.class.new(key, namespace, model, opts)
     end
@@ -62,7 +68,7 @@ module Ohm
     end
 
     def ids
-      if @options.fetch(:reverse, false)
+      if reversed?
         execute { |key| db.zrevrangebyscore(key, @range.first, @range.last, limit: [offset, count]) }
       else
         execute { |key| db.zrangebyscore(key, @range.first, @range.last, limit: [offset, count]) }
