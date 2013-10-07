@@ -197,4 +197,8 @@ class SortedTest < Test::Unit::TestCase
 
     assert_equal posts[0..1], Post.sorted_find(:order).between(2, 3).reverse.to_a
   end
+
+  def test_each_without_block_returns_enumerable
+    assert Post.sorted_find(:order).each.kind_of?(Enumerator)
+  end
 end

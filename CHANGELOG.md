@@ -8,6 +8,8 @@
    Post.sorted_find(:created_at).reverse.between(Time.now - 10, Time.now)
    ```
 
+ - `SortedSet#each` now returns an Enumerator when called without a block
+
 ### 0.3.1
 
  - Return correct set size for ranged sets
