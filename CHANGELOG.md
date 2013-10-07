@@ -1,4 +1,4 @@
-### (unreleased)
+### 0.3.2
 
  - You can now use `SortedSet#reverse` to query in reverse order.
 
