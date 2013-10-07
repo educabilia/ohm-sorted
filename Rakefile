@@ -1,6 +1,5 @@
 require "rake/testtask"
 require "appraisal"
-require "bundler/setup"
 
 REDIS_DIR = File.expand_path(File.join("..", "test"), __FILE__)
 REDIS_CNF = File.join(REDIS_DIR, "test.conf")
