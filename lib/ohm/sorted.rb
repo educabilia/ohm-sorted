@@ -105,12 +105,9 @@ module Ohm
         model.db
       end
 
-      def each
-        if block_given?
-          ids.each { |id| block.call(model.to_proc[id]) }
-        else
-          to_enum(:each)
-        end
+      def each(&block)
+        return to_enum(:each) unless block
+        ids.each { |id| block.call(model.to_proc[id]) }
       end
 
       def [](id)
