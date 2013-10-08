@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'ohm-sorted'
-  s.version     = '0.3.2'
+  s.version     = '0.3.3'
   s.summary     = "Sorted indices for Ohm."
   s.description = "An plugin for Ohm that lets you create sorted indices."
   s.author      = "Federico Bond"

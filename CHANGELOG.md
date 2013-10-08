@@ -1,4 +1,4 @@
-### (unreleased)
+### 0.3.3
 
  - Fix broken `SortedSet#each` behavior
 
