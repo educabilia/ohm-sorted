@@ -1,3 +1,7 @@
+### 0.3.4
+
+ - Fix `SortedSet#size` when using slicing
+
 ### 0.3.3
 
  - Fix broken `SortedSet#each` behavior
