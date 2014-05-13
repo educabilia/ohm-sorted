@@ -105,10 +105,10 @@ class SortedTest < Test::Unit::TestCase
     assert_equal [], sorted_set.to_a
   end
 
-  def test_indexes_nil
+  def test_does_not_index_nil
     post = Post.create(status: "draft")
     sorted_set = Post.sorted_find(:order, status: "draft")
-    assert_equal [post], sorted_set.to_a
+    assert_equal [], sorted_set.to_a
   end
 
   def test_sorted_find_invalid
