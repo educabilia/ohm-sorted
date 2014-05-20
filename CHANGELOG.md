@@ -1,3 +1,8 @@
+### 0.4.0
+
+ - Do not index nil values. You can do a manual `to_f` in case you need to
+   preserve the old behaviour
+
 ### 0.3.4
 
  - Fix `SortedSet#size` when using slicing
