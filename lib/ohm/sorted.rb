@@ -220,10 +220,12 @@ module Ohm
     def add_sorted_indices
       update_sorted_indices do |key, attribute, options|
         attr = send(attribute)
-        next if attr.nil?
-
-        score = attr.to_f
-        db.zadd(key, score, id)
+        if attr
+          score = attr.to_f
+          db.zadd(key, score, id)
+        else
+          db.zrem(key, id)
+        end
       end
     end
 
