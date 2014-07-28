@@ -1,3 +1,7 @@
+### 0.4.1
+
+- Fixed a bug where updating to a `nil` value didn't update the index.
+
 ### 0.4.0
 
  - Do not index nil values. You can do a manual `to_f` in case you need to
