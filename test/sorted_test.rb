@@ -109,6 +109,14 @@ class SortedTest < Test::Unit::TestCase
     post = Post.create(status: "draft")
     sorted_set = Post.sorted_find(:order, status: "draft")
     assert_equal [], sorted_set.to_a
+
+    post.update(order: 1)
+    sorted_set = Post.sorted_find(:order, status: "draft")
+    assert_equal [post], sorted_set.to_a
+
+    post.update(order: nil)
+    sorted_set = Post.sorted_find(:order, status: "draft")
+    assert_equal [], sorted_set.to_a
   end
 
   def test_sorted_find_invalid
