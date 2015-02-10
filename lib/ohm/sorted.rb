@@ -30,7 +30,7 @@ module Ohm
     end
 
     def size
-      execute { |key| fix_size(db.zcard(key)) }
+      execute { |key| fix_size(redis.call('zcard', key)) }
     end
 
     def between(first, last)
@@ -69,9 +69,9 @@ module Ohm
 
     def ids
       if reversed?
-        execute { |key| db.zrevrangebyscore(key, @range.first, @range.last, limit: [offset, count]) }
+        execute { |key| redis.call('zrevrangebyscore', key, @range.first, @range.last, 'limit', offset, count) }
       else
-        execute { |key| db.zrangebyscore(key, @range.first, @range.last, limit: [offset, count]) }
+        execute { |key| redis.call('zrangebyscore', key, @range.first, @range.last, 'limit', offset, count) }
       end
     end
 
@@ -91,23 +91,23 @@ module Ohm
 
     private
       def exists?(id)
-        execute { |key| !!db.zscore(key, id) }
+        execute { |key| !!redis.call('zscore', key, id) }
       end
 
       def execute
         yield key
       end
 
-      def db
-        model.db
+      def redis
+        model.redis
       end
     end
   else
     class SortedSet < Model::Collection
       include Ohm::SortedMethods
 
-      def db
-        model.db
+      def redis
+        model.redis
       end
 
       def each(&block)
@@ -116,7 +116,7 @@ module Ohm
       end
 
       def [](id)
-        model[id] if !!db.zrank(key, id)
+        model[id] if !!redis.call('zrank', key, id)
       end
 
       def empty?
@@ -128,7 +128,7 @@ module Ohm
       end
 
       def include?(model)
-        !!db.zrank(key, model.id)
+        !!redis.call('zrank', key, model.id)
       end
 
     private
@@ -140,7 +140,7 @@ module Ohm
 
   class RangedSortedSet < SortedSet
     def size
-      execute { |key| fix_size(db.zcount(key, @range.first, @range.last)) }
+      execute { |key| fix_size(redis.call('zcount', key, @range.first, @range.last)) }
     end
   end
 
@@ -222,16 +222,16 @@ module Ohm
         attr = send(attribute)
         if attr
           score = attr.to_f
-          db.zadd(key, score, id)
+          redis.call('zadd', key, score, id)
         else
-          db.zrem(key, id)
+          redis.call('zrem', key, id)
         end
       end
     end
 
     def remove_sorted_indices
       update_sorted_indices do |key, attribute, options|
-        db.zrem(key, id)
+        redis.call('zrem', key, id)
       end
     end
 
@@ -240,13 +240,13 @@ module Ohm
       update_sorted_indices do |key, attribute, options|
         return unless options.include?(:group_by)
 
-        old_value = db.hget(self.key, options[:group_by])
+        old_value = redis.call('hget', self.key, options[:group_by])
         new_value = send(options[:group_by])
 
         if old_value != new_value
           opts = {options[:group_by] => old_value}
           key = self.class.sorted_index_key(attribute, opts)
-          db.zrem(key, id)
+          redis.call('zrem', key, id)
         end
       end
     end
